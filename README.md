@@ -14,6 +14,8 @@ order of magnitude from greatest to least. A "lock-in" graph is created, where t
 ## Quickstart
 
 `cargo build`
+
 `cargo run` to see full working example with announced winner.
+
 `cargo test` to run the example for each discrete procedure step.
 
