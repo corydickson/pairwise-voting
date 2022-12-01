@@ -1,52 +1,98 @@
+use::std::collections::HashSet;
+use serde::{Deserialize, Serialize};
+use serde_json::Result;
+
 pub type Candidate = String;
-pub type Ballot = [Candidate; 4];
+pub type Candidates = Vec<Candidate>;
+pub type Ballots = Vec<Preference>;
+pub type Preference = Candidates;
 
-pub fn create_wikipedia_ballots() -> Vec<[String; 4]> {
-    // Example election provided by: https://en.wikipedia.org/wiki/Ranked_pairs
-    let mut ballots: Vec<Ballot> = Vec::new();
-
-    for _i in 0..7 {
-        let ballot: [String; 4] = [String::from("w"),String::from("x"), String::from("z"), String::from("y")];
-
-        ballots.push(ballot);
-    }
-    assert_eq!(ballots.len(), 7);
-
-    for _i in 0..2 {
-        let ballot = [String::from("w"),String::from("y"), String::from("x"), String::from("z")];
-
-        ballots.push(ballot);
-    }
-    assert_eq!(ballots.len(), 9);
-
-    for _i in 0..4 {
-        let ballot = [String::from("x"),String::from("y"), String::from("z"), String::from("w")];
-
-        ballots.push(ballot);
-    }
-    assert_eq!(ballots.len(), 13);
-
-    for _i in 0..5 {
-        let ballot = [String::from("x"),String::from("z"), String::from("w"), String::from("y")];
-
-        ballots.push(ballot);
-    }
-    assert_eq!(ballots.len(), 18);
-
-    for _i in 0..1 {
-        let ballot = [String::from("y"),String::from("w"), String::from("x"), String::from("z")];
-
-        ballots.push(ballot);
-    }
-    assert_eq!(ballots.len(), 19);
-
-    for _i in 0..8 {
-        let ballot = [String::from("y"),String::from("z"), String::from("w"), String::from("x")];
-
-        ballots.push(ballot);
-    }
-    assert_eq!(ballots.len(), 27);
-
-    return ballots;
+#[derive(Debug, Serialize, Deserialize)]
+struct Ballot {
+    preference: Preference,
+    count: u8
 }
 
+#[derive(Serialize, Deserialize)]
+struct Election {
+    candidates: Candidates,
+    ballots: Vec<Ballot>,
+}
+
+pub fn parse_election_json(json_str: &str) -> Result<(Candidates, Ballots)> {
+    let election: Election = serde_json::from_str(json_str)?;
+    let mut ballots = Vec::new();
+
+    for b in election.ballots.iter() {
+        if b.preference.len() != election.candidates.len() {
+            panic!("Expected number of candidates on the ballot to be the same");
+        }
+
+        let mut unique = HashSet::new();
+        if !b.preference.iter().all(|candidate| unique.insert(candidate) && election.candidates.contains(candidate)) {
+            panic!("Expected ballot to only contain candidates defined: {:?}, received {:?}", election.candidates, b.preference);
+        }
+
+        for _ in 0..b.count {
+            ballots.push(b.preference.to_owned());
+        }
+    }
+
+    Ok((election.candidates, ballots))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[should_panic]
+    fn fails_candidates_mismatch() {
+        let data = r#"
+        {
+            "candidates": ["x", "y"],
+            "ballots": [
+                {
+                    "preference": ["w", "x", "z", "y"],
+                    "count": 7
+                }
+            ]
+        }"#;
+
+        let (_, _ballots) = parse_election_json(data).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn fails_ballots_mismatch() {
+        let data = r#"
+        {
+            "candidates": ["x", "y"],
+            "ballots": [
+                {
+                    "preference": ["w", "z"],
+                    "count": 7
+                }
+            ]
+        }"#;
+
+        let (_, _ballots) = parse_election_json(data).unwrap();
+    }
+
+    #[test]
+    fn correct_num_ballots() {
+        let data = r#"
+        {
+            "candidates": ["x", "y"],
+            "ballots": [
+                {
+                    "preference": ["y", "x"],
+                    "count": 7
+                }
+            ]
+        }"#;
+
+        let (_, ballots) = parse_election_json(data).unwrap();
+        assert_eq!(ballots.len(), 7);
+    }
+}

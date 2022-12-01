@@ -4,7 +4,7 @@ use std::collections::HashMap;
 type Pair = (Candidate, Candidate);
 type Score = i32;
 
-pub fn tally(ballots: Vec<Ballot>) -> HashMap <Pair, Score> {
+pub fn tally(ballots: Ballots) -> HashMap <Pair, Score> {
     let mut scores = HashMap::new();
 
     for b in ballots {
@@ -77,10 +77,20 @@ pub fn lock<'a>(candidates: &'a Vec<Candidate>, majorities: Vec<(&Pair, &Score)>
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs::read_to_string;
+
+    fn load_wikipedia_ballots() -> Ballots {
+        let json = read_to_string("./examples/wiki.json")
+            .expect("Should have been able to read the file");
+        let (_, ballots) = parse_election_json(json.as_str()).unwrap();
+
+        return ballots;
+
+    }
 
     #[test]
     fn tally_count() {
-        let ballots = create_wikipedia_ballots();
+        let ballots = load_wikipedia_ballots();
         let scores = tally(ballots);
 
         assert_eq!(scores.get(&(String::from("w"), String::from("w"))).unwrap(), &0);
@@ -106,7 +116,7 @@ mod tests {
 
     #[test]
     fn majorities_sorted_correctly() {
-        let ballots = create_wikipedia_ballots();
+        let ballots = load_wikipedia_ballots();
         let scores = tally(ballots);
         let majorities = sort_majorities(&scores);
         let correct_ordered_scores = vec![11,9,7,5,3,1];
@@ -120,7 +130,7 @@ mod tests {
     #[test]
     fn locked_graph_no_cycles() {
         let candidates = vec![String::from("w"),String::from("x"), String::from("z"), String::from("y")];
-        let ballots = create_wikipedia_ballots();
+        let ballots = load_wikipedia_ballots();
         let results = tally(ballots);
         let majorities = sort_majorities(&results);
         let sources = lock(&candidates, majorities);
