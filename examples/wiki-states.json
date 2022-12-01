@@ -1,0 +1,22 @@
+{
+    "candidates": ["Memphis", "Nashville", "Chattanooga", "Knoxville"],
+    "ballots": [
+        {
+            "preference": ["Memphis", "Nashville", "Chattanooga", "Knoxville"],
+            "count": 42
+        },
+        {
+            "preference": ["Nashville", "Chattanooga", "Knoxville", "Memphis"],
+            "count": 26
+        },
+        {
+            "preference": ["Chattanooga", "Knoxville", "Nashville", "Memphis"],
+            "count": 15
+        },
+        {
+            "preference": ["Knoxville", "Chattanooga", "Nashville", "Memphis"],
+            "count": 17
+        }
+    ]
+}
+
