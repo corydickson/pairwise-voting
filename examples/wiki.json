@@ -1,0 +1,29 @@
+{
+    "candidates": ["w", "x", "y", "z"],
+    "ballots": [
+        {
+            "preference": ["w", "x", "z", "y"],
+            "count": 7
+        },
+        {
+            "preference": ["w", "y", "x", "z"],
+            "count": 2
+        },
+        {
+            "preference": ["x", "y", "z", "w"],
+            "count": 4
+        },
+        {
+            "preference": ["x", "z", "w", "y"],
+            "count": 5
+        },
+        {
+            "preference": ["y", "w", "x", "z"],
+            "count": 1
+        },
+        {
+            "preference": ["y", "z", "w", "x"],
+            "count": 8
+        }
+    ]
+}
